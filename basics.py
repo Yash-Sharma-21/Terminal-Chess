@@ -73,6 +73,26 @@ class King(Piece):
                 if board[new_row][new_col] is None or board[new_row][new_col].color!=self.color:
                     moves.append((new_row,new_col))
         return moves
+        if not self.has_Moved:
+            #King Side Castle
+            if self.can_short_castle(board,row,col):
+                moves.append((row,col+2))
+            #Queen Side Castle
+            if self.can_long_castle(board,row,col):
+                moves.append((row,col-2))
+            return moves
+        def can_short_castle(self,board,row,col):
+            rook =board[row][7]
+            if rook is not isinstance(rook,Rook) or rook.has_moved:
+                return False
+            if board[row][5] and board[row][6] :
+                return False
+            temp_board=Board()
+            for c in [col ,col+1,col+2]:
+                temp_board.grid[row][col]=None
+                temp_board.grid[row][c]=self
+                if temp_board.isInCheck(self.color):
+                    
 class Queen(SlidingPieces):
     def valid_moves(self, board, row, col):        
         direction=[(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
