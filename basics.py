@@ -377,6 +377,17 @@ class Board:
             self.grid[er][ec]=Bishop(color)
         else:
             self.grid[er][ec]=Queen(color)  # Default to Queen
+    def stalemate(self,color):
+        if self.isInCheck(color):
+            return False
+        for i in range(8):
+            for j in range(8):
+                piece=self.grid[i][j]
+                if piece.color==color:
+                    moves=piece.valid_moves(self.grid,i,j)
+                    if len(moves)!=0:
+                        return False
+        return True
 
 # GAME LOOP
 board=Board()
