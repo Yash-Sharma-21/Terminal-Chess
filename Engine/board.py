@@ -1,96 +1,4 @@
-def chess_to_index(pos):
-    col=ord(pos[0])-ord('a')
-    row=8-int(pos[1])
-    return row,col
-
-class Piece:
-    def __init__(self,color):
-        self.color=color
-        self.has_moved=False    
-    def valid_moves(self,board,row,col):
-        return[]
-
-class SlidingPieces(Piece):
-    def get_sliding_moves(self,board,i,j,directions):
-        moves=[]
-        for dr,dc in directions:
-            new_row=i+dr
-            new_col=j+dc
-            while 0<=new_row<8 and 0<=new_col<8:
-                if board[new_row][new_col] is None:
-                    moves.append((new_row,new_col))
-                elif board[new_row][new_col].color!=self.color:
-                    moves.append((new_row,new_col))
-                    break
-                else:
-                    break
-                new_row+=dr
-                new_col+=dc
-        return moves
-
-class Pawn(Piece):
-    def valid_moves(self,board,row,col):
-        moves=[]
-        direction=-1 if self.color=='white' else 1
-        
-        # 1 step
-        new_row=row+direction
-        if 0<=new_row<8 and board[new_row][col] is None:
-            moves.append((new_row,col))
-
-            # 2 step
-            if (self.color=='white' and row==6) or (self.color=='black' and row==1):
-                if board[row+2*direction][col] is None:
-                    moves.append((row+2*direction,col))
-        
-        # captures
-        for dc in [-1,1]:
-            new_col=col+dc
-            new_row=row+direction
-            if 0<=new_col<8 and 0<=new_row<8:
-                if board[new_row][new_col] is not None and board[new_row][new_col].color!=self.color:
-                    moves.append((new_row,new_col))
-        return moves
-
-class Rook(SlidingPieces):
-    def valid_moves(self,board,row,col):
-        direction=[(0,1),(0,-1),(1,0),(-1,0)]
-        return self.get_sliding_moves(board,row,col,direction)
-
-class Bishop(SlidingPieces):
-    def valid_moves(self, board, row, col):
-        direction=[(1,1),(1,-1),(-1,1),(-1,-1)]
-        return self.get_sliding_moves(board,row,col,direction)
-
-class King(Piece):
-    def valid_moves(self,board,row,col):
-        moves=[]
-        direction=[(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
-        for dr,dc in direction:
-            new_row=row+dr
-            new_col=col+dc
-            if 0<=new_row<8 and 0<=new_col<8:
-                if board[new_row][new_col] is None or board[new_row][new_col].color!=self.color:
-                    moves.append((new_row,new_col))        
-        return moves
-
-class Queen(SlidingPieces):
-    def valid_moves(self, board, row, col):        
-        direction=[(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
-        return self.get_sliding_moves(board,row,col,direction)
-
-class Knight(Piece):
-    def valid_moves(self, board, row, col):
-        moves=[]
-        direction=[(2,1),(2,-1),(1,2),(1,-2),(-2,1),(-2,-1),(-1,2),(-1,-2)]
-        for dr,dc in direction:
-            new_row=row+dr
-            new_col=col+dc
-            if 0<=new_row<8 and 0<=new_col<8:
-                if board[new_row][new_col] is None or board[new_row][new_col].color!=self.color :
-                    moves.append((new_row,new_col))
-        return moves
-
+from .pieces import Pawn,King,Knight,Queen,Rook,Bishop
 class Board:
     def __init__(self):
         self.grid=[[None]*8 for _ in range(8)]
@@ -124,7 +32,6 @@ class Board:
         self.grid[0][4]=King('black')
 
     def can_short_castle(self, row, col):
-        """Check if short castle is possible for king at (row, col)"""
         if self.turn != self.grid[row][col].color:
             return False
             
@@ -159,7 +66,6 @@ class Board:
         return True
 
     def can_long_castle(self, row, col):
-        """Check if long castle is possible for king at (row, col)"""
         if self.turn != self.grid[row][col].color:
             return False
             
@@ -196,7 +102,6 @@ class Board:
         return True
 
     def get_valid_moves_with_castle(self, piece, row, col):
-        """Get valid moves including castling for king"""
         moves = piece.valid_moves(self.grid, row, col)
         
         if isinstance(piece, King) and not piece.has_moved:
@@ -388,41 +293,3 @@ class Board:
                     if len(moves)!=0:
                         return False
         return True
-
-# GAME LOOP
-board=Board()
-
-while True:
-    board.print_board()
-    print("turn:",board.turn)
-
-    if board.checkMate(board.turn):
-        print("CheckMate !! Game Over!!")
-        break
-
-    move=input("Enter Your move(In chess Notations):").strip()
-    if not move:
-        continue
-        
-    s=move[:2]
-    e=move[2:4]
-    p=move[4:].upper() if len(move)>=5 else "Q"
-
-    try:
-        start=chess_to_index(s)
-        end=chess_to_index(e)
-    except:
-        print("Invalid notation")
-        continue
-
-    success,check=board.move(start,end,p)
-
-    if success:
-        print("Move Done")
-        if check:
-            print("Check!!!!!!")
-    else:
-        if check=="self_check":
-            print("Invalid Move: King would be in check")
-        else:
-            print("Invalid Move")
