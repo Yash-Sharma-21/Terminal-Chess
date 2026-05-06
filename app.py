@@ -34,7 +34,7 @@ def get_board():
                 if p.color=='black':
                     symbol=symbol.lower()
                 temp.append(symbol)
-    result.append(temp)
+        result.append(temp)
 
     return jsonify({
         "board":result,
